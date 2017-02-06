@@ -8,7 +8,7 @@ let isEmpty = require('lodash.isempty')
  * A function that can be used as a plugin for bookshelf
  * @param {Object} bookshelf The main bookshelf instance
  * @param {Object} [settings] Additional settings for configuring this plugin
- * @param {String} [settings.field=deleted_at] The name of the field that stores
+ * @param {String} [settings.field=is_deleted] The name of the field that stores
  *   the soft delete information for that model
  * @param {String?} [settings.sentinel=null] The name of the field that stores
  *   the model's active state as a boolean for unique indexing purposes, if any
@@ -16,7 +16,7 @@ let isEmpty = require('lodash.isempty')
 module.exports = (bookshelf, settings) => {
   // Add default settings
   settings = merge({
-    field: 'deleted_at',
+    field: 'is_deleted',
     sentinel: null,
     events: {
       destroying: true,
@@ -42,7 +42,7 @@ module.exports = (bookshelf, settings) => {
       let softDelete = this.model ? this.model.prototype.softDelete : this.softDelete
 
       if (softDelete === true && options.withDeleted !== true) {
-        options.query.whereNull(`${result(this, 'tableName')}.${settings.field}`)
+        options.query.where(`${result(this, 'tableName')}.${settings.field}`, 0)
       }
     }
   }
@@ -96,7 +96,7 @@ module.exports = (bookshelf, settings) => {
         })
 
         // Attributes to be passed to events
-        let attrs = { [settings.field]: new Date() }
+        let attrs = { [settings.field]: 1 }
         // Null out sentinel column, since NULL is not considered by SQL unique indexes
         if (settings.sentinel) {
           attrs[settings.sentinel] = null
